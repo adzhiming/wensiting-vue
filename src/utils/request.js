@@ -4,9 +4,9 @@ import toLogin from "@libs/login";
 import { VUE_APP_API_URL } from "@utils/index";
 
 const instance = axios.create({
-  // baseURL: VUE_APP_API_URL,
+  baseURL: VUE_APP_API_URL,
   // TODO test
-  baseURL: "http://wst.com/api",
+  // baseURL: "http://wst.com/api",
   timeout: 5000
 });
 

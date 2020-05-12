@@ -3,7 +3,9 @@ import {
   cancelOrder,
   takeOrder,
   delOrder,
-  payOrder
+  payOrder,
+  isPayOrder,
+  isApplySale
 } from "@api/order";
 import dialog from "@utils/dialog";
 import { pay } from "@libs/wechat";
@@ -16,25 +18,6 @@ export function cancelOrderHandle(orderId) {
         cancelOrder(orderId)
           .then(res => {
             dialog.success("取消成功");
-            resolve(res);
-          })
-          .catch(err => {
-            dialog.error("取消失败");
-            reject(err);
-          });
-      }
-    });
-  });
-}
-
-export function isSaleOrderHandle(orderId) {
-  return new Promise((resolve, reject) => {
-    dialog.confirm({
-      mes: "确认收到继售订单商品资金？",
-      opts() {
-        isSaleOrder(orderId)
-          .then(res => {
-            dialog.success("操作成功");
             resolve(res);
           })
           .catch(err => {
@@ -114,5 +97,63 @@ export function payOrderHandle(orderId, type, from) {
         dialog.loading.close();
         dialog.toast({ mes: err.msg || "订单支付失败" });
       });
+  });
+}
+
+//支付申请
+export function isPayOrderHandle(orderId) {
+  return new Promise((resolve, reject) => {
+    dialog.confirm({
+      mes: "确认已经扫码付款，申请已支付？",
+      opts() {
+        isPayOrder(orderId)
+          .then(res => {
+            dialog.success("操作成功");
+            resolve(res);
+          })
+          .catch(err => {
+            dialog.error(err.msg);
+            reject(err);
+          });
+      }
+    });
+  });
+}
+
+export function isApplySaleHandle(orderId) {
+  return new Promise((resolve, reject) => {
+    dialog.confirm({
+      mes: "申请该订单的商品继售？",
+      opts() {
+        isApplySale(orderId)
+          .then(res => {
+            dialog.success("操作成功");
+            resolve(res);
+          })
+          .catch(err => {
+            dialog.error(err.msg);
+            reject(err);
+          });
+      }
+    });
+  });
+}
+
+export function isSaleOrderHandle(orderId) {
+  return new Promise((resolve, reject) => {
+    dialog.confirm({
+      mes: "确认收到继售订单商品资金？",
+      opts() {
+        isSaleOrder(orderId)
+          .then(res => {
+            dialog.success("操作成功");
+            resolve(res);
+          })
+          .catch(err => {
+            dialog.error(err.msg);
+            reject(err);
+          });
+      }
+    });
   });
 }

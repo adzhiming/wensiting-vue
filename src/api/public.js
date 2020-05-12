@@ -106,3 +106,7 @@ export function imageBase64(image, code) {
     { login: false }
   );
 }
+
+export function setExtendUser(uid) {
+  return request.get("/extenduser", { id: uid }, { login: false });
+}

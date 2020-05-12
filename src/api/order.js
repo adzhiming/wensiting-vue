@@ -129,5 +129,13 @@ export function orderVerific(verify_code, is_confirm) {
 }
 
 export function isSaleOrder(id) {
-  return request.post("/order/order_issale", { id });
+  return request.post("/order/order_issale", { id }); //确收继售 收款
+}
+
+export function isPayOrder(id) {
+  return request.post("/order/order_ispay", { id }); //支付申请审核 ok
+}
+
+export function isApplySale(id) {
+  return request.post("/order/order_applysale", { id }); //申请继售
 }
