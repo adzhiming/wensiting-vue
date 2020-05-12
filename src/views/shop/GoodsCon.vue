@@ -17,12 +17,12 @@
             class="image"
             v-if="storeInfo.vip_price && storeInfo.vip_price > 0"
           />
-		  
-		  <span v-if="storeInfo.is_sale == 1">预订抢购中</span>
+
+          <span v-if="storeInfo.is_sale == 1">预订抢购中</span>
         </div>
         <div class="iconfont icon-fenxiang" @click="listenerActionSheet"></div>
       </div>
-      <div class="introduce">{{ storeInfo.store_name }}   </div>
+      <div class="introduce">{{ storeInfo.store_name }}</div>
       <div class="label acea-row row-between-wrapper">
         <div>原价:￥{{ storeInfo.ot_price }}</div>
         <div>库存:{{ storeInfo.stock }}{{ storeInfo.unit_name }}</div>
@@ -146,7 +146,7 @@
         <div>购物车</div>
       </router-link>
       <div class="bnt acea-row">
-        <div class="joinCart" @click="joinCart" >加入购物车</div>
+        <div class="joinCart" @click="joinCart">加入购物车</div>
         <div class="buy" @click="tapBuy">立即购买</div>
       </div>
     </div>
@@ -490,8 +490,16 @@ export default {
     this.id = this.$route.params.id;
     this.productCon();
     this.coupons();
+    this.geturl();
   },
   methods: {
+    geturl: function() {
+      var uuid = this.$route.query.uuid;
+      console.log("111", uuid);
+      if (uuid) {
+        sessionStorage.setItem("uuid", uuid);
+      }
+    },
     showChang: function() {
       if (isWeixin()) {
         let config = {
@@ -582,6 +590,7 @@ export default {
       var that = this;
       getProductCode(that.id).then(res => {
         if (res.data.code) that.posterData.code = res.data.code;
+
         value === false && that.listenerActionSheet();
       });
     },
@@ -703,7 +712,6 @@ export default {
     },
     //购物车；
     ChangeCartNum: function(changeValue) {
-		return 1;
       //changeValue:是否 加|减
       //获取当前变动属性
       let productSelect = this.productValue[this.attrValue];
@@ -810,13 +818,12 @@ export default {
     //  点击加入购物车按钮
     joinCart: function() {
       //0=加入购物车
-	  if(this.storeInfo.is_sale == 1){
-	  	return this.$dialog.toast({ mes: "商品预订抢购中...请稍后" });
-	  }else{
-	  	//  1=直接购买
-	  	this.goCat(0);
-	  }
-      
+      if (this.storeInfo.is_sale == 1) {
+        return this.$dialog.toast({ mes: "商品预订抢购中...请稍后" });
+      } else {
+        //  1=直接购买
+        this.goCat(0);
+      }
     },
     // 加入购物车；
     goCat: function(news) {
@@ -888,13 +895,12 @@ export default {
     },
     //立即购买；
     tapBuy: function() {
-		if(this.storeInfo.is_sale == 1){
-			return this.$dialog.toast({ mes: "商品预订抢购中...请稍后" });
-		}else{
-			//  1=直接购买
-			this.goCat(1);
-		}
-      
+      if (this.storeInfo.is_sale == 1) {
+        return this.$dialog.toast({ mes: "商品预订抢购中...请稍后" });
+      } else {
+        //  1=直接购买
+        this.goCat(1);
+      }
     },
     listenerActionSheet: function() {
       if (isWeixin() === true) {
