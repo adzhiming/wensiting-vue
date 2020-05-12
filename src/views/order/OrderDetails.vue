@@ -37,7 +37,7 @@
           </div>
           <div :class="{ on: status.type === 3 }">待评价</div>
           <div :class="{ on: status.type === 4 }">已完成</div>
-		  <div :class="{ on: status.type === 9 }">继售</div>
+          <div :class="{ on: status.type === 9 }">继售</div>
         </div>
         <div class="progress acea-row row-between-wrapper">
           <div
@@ -291,6 +291,20 @@
           >￥{{ orderInfo.pay_price }}</span
         >
       </div>
+      <div
+        class="actualPay acea-row row-right"
+        v-if="orderInfo.is_pay_valid > 0 && orderInfo.paid == 0"
+      >
+        <span class=" font-color-red" v-if="orderInfo.is_pay_valid === 1">
+          支付申请-审核中
+        </span>
+        <span class=" font-color-red " v-if="orderInfo.is_pay_valid === 2">
+          支付申请-成功
+        </span>
+        <span class=" font-color-red" v-if="orderInfo.is_pay_valid === 3">
+          支付申请-失败
+        </span>
+      </div>
     </div>
     <div style="height:1.2rem;" v-if="!refundOrder && offlineStatus"></div>
     <div
@@ -300,17 +314,24 @@
       <template v-if="status.type === 0">
         <div class="bnt cancel" @click="cancelOrder">取消订单</div>
         <!-- <div class="bnt bg-color-red" @click="pay = true">立即付款</div> -->
-		<!-- TODO test -->
-		<div class="bnt bg-color-red" @click="showCode">立即付款</div>
+        <!-- TODO test -->
+        <div class="bnt bg-color-red" @click="showCode">查看付款码</div>
+        <div
+          class="bnt bg-color-red"
+          @click="isPayOrder"
+          v-if="orderInfo.is_pay_valid === 0 || orderInfo.is_pay_valid === 3"
+        >
+          已支付申请
+        </div>
       </template>
-      <template v-if="status.type === 1">
+      <!-- <template v-if="status.type === 1">
         <div
           class="bnt cancel"
           @click="$router.push({ path: '/order/refund/' + orderInfo.order_id })"
         >
           申请退款
         </div>
-      </template>
+      </template> -->
       <template v-if="status.type === 2">
         <div
           class="bnt default"
@@ -366,11 +387,11 @@
       @checked="toPay"
       :balance="userInfo.now_money"
     ></Payment>
-	<ShowPayCode
-	  v-on:setPosterImageStatus="setPosterImageStatus"
-	  :posterImageStatus="posterImageStatus"
-	  :posterData="posterData"
-	></ShowPayCode>
+    <ShowPayCode
+      v-on:setPosterImageStatus="setPosterImageStatus"
+      :posterImageStatus="posterImageStatus"
+      :posterData="posterData"
+    ></ShowPayCode>
     <div class="geoPage" v-if="mapShow">
       <iframe
         width="100%"
@@ -511,14 +532,15 @@ import { orderDetail } from "@api/order";
 import ClipboardJS from "clipboard";
 import Payment from "@components/Payment";
 import ShowPayCode from "@components/ShowPayCode";
-import { getProductPaycodebyOrder  } from "@api/store";
+import { getProductPaycodebyOrder } from "@api/store";
 import { isWeixin } from "@utils";
 import { mapGetters } from "vuex";
 import {
   cancelOrderHandle,
   takeOrderHandle,
   delOrderHandle,
-  payOrderHandle
+  payOrderHandle,
+  isPayOrderHandle
 } from "@libs/order";
 import { wechatEvevt } from "@libs/wechat";
 
@@ -529,7 +551,7 @@ export default {
   components: {
     OrderGoods,
     Payment,
-	ShowPayCode
+    ShowPayCode
   },
   props: {},
   data: function() {
@@ -549,14 +571,14 @@ export default {
       system_store: {},
       mapKay: "",
       mapShow: false,
-	  paycode:'',
-	  posterImageStatus: false,
-	  posterData: {
-	    image: "",
-	    title: "",
-	    price: "",
-	    code: ""
-	  },
+      paycode: "",
+      posterImageStatus: false,
+      posterData: {
+        image: "",
+        title: "",
+        price: "",
+        code: ""
+      }
     };
   },
   computed: {
@@ -610,25 +632,25 @@ export default {
         this.mapShow = true;
       }
     },
-	//TODO test
-	showCode() {
-		getProductPaycodebyOrder(this.orderInfo.order_id)
-		.then(res => {
-		  this.paycode = res.msg;
-		})
-		.catch(() => {});
-		this.posterData.image = this.orderInfo.cartInfo[0].productInfo.image;
-		this.posterData.title = this.orderInfo.cartInfo[0].productInfo.store_name;
-		this.posterData.price = this.orderInfo.cartInfo[0].truePrice;
-		this.posterData.code = this.paycode;
-		this.setPosterImageStatus();
-	},
-	setPosterImageStatus: function() {
-	  var sTop = document.body || document.documentElement;
-	  sTop.scrollTop = 0;
-	  this.posterImageStatus = !this.posterImageStatus;
-	  this.posters = false;
-	},
+    //TODO test
+    showCode() {
+      getProductPaycodebyOrder(this.orderInfo.order_id)
+        .then(res => {
+          this.paycode = res.msg;
+        })
+        .catch(() => {});
+      this.posterData.image = this.orderInfo.cartInfo[0].productInfo.image;
+      this.posterData.title = this.orderInfo.cartInfo[0].productInfo.store_name;
+      this.posterData.price = this.orderInfo.cartInfo[0].truePrice;
+      this.posterData.code = this.paycode;
+      this.setPosterImageStatus();
+    },
+    setPosterImageStatus: function() {
+      var sTop = document.body || document.documentElement;
+      sTop.scrollTop = 0;
+      this.posterImageStatus = !this.posterImageStatus;
+      this.posters = false;
+    },
     goBack() {
       const history = this.app.history,
         last = history[history.length - 1] || {};
@@ -637,6 +659,15 @@ export default {
     },
     cancelOrder() {
       cancelOrderHandle(this.orderInfo.order_id)
+        .then(() => {
+          setTimeout(() => this.goBack(), 300);
+        })
+        .catch(() => {
+          this.getDetail();
+        });
+    },
+    isPayOrder() {
+      isPayOrderHandle(this.orderInfo.id)
         .then(() => {
           setTimeout(() => this.goBack(), 300);
         })

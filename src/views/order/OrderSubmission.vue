@@ -58,17 +58,17 @@
     </div>
     <OrderGoods :evaluate="0" :cartInfo="orderGroupInfo.cartInfo"></OrderGoods>
     <div class="wrapper">
-      <div
+      <!-- <div
         class="item acea-row row-between-wrapper"
         @click="couponTap"
         v-if="deduction === false"
       >
-        <!-- <div>优惠券</div>
+        <div>优惠券</div>
         <div class="discount">
           {{ usableCoupon.coupon_title || "请选择" }}
           <span class="iconfont icon-jiantou"></span>
-        </div> -->
-      </div>
+        </div>
+      </div> -->
       <!-- <div class="item acea-row row-between-wrapper" v-if="deduction === false">
         <div>积分抵扣</div>
         <div class="discount">
@@ -209,20 +209,19 @@
       </div>
     </div> -->
     <!-- TODO test -->
-	<div class="wrapper">
-		<div class="item acea-row row-between-wrapper">
-			<div>扫码支付</div>
-			<div class="money">付款后联系客服确认</div>
-		</div>
-		<div class="item acea-row row-between-wrapper">
-			
-			<div class="pictrue-pay-code">
-				<img :src="paycode" />
-			</div>
-		</div>
-	</div>
-	
-	<div class="moneyList">
+    <div class="wrapper">
+      <div class="item acea-row row-between-wrapper">
+        <div>扫码支付</div>
+        <div class="money">付款后联系客服确认</div>
+      </div>
+      <div class="item acea-row row-between-wrapper">
+        <div class="pictrue-pay-code">
+          <img :src="paycode" />
+        </div>
+      </div>
+    </div>
+
+    <div class="moneyList">
       <div
         class="item acea-row row-between-wrapper"
         v-if="orderPrice.total_price !== undefined"
@@ -277,21 +276,21 @@
   </div>
 </template>
 <style scoped>
-.pictrue-pay-code{
-	width: auto;  
-	height: auto;  
-	max-width: 2.88rem;
-	/* max-height: 2.88rem; */
-	objec-fit: cover;
-	position: relative;
+.pictrue-pay-code {
+  width: auto;
+  height: auto;
+  max-width: 2.88rem;
+  /* max-height: 2.88rem; */
+  objec-fit: cover;
+  position: relative;
 }
-	
-.pictrue-pay-code img{
-	border: 0;
-	width: auto;
-	height: auto;
-	max-width: 100%;
-	max-height: 100%;
+
+.pictrue-pay-code img {
+  border: 0;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
 }
 .order-submission .wrapper .shipping select {
   color: #999;
@@ -428,7 +427,7 @@ export default {
       contactsTel: "",
       store_self_mention: 0,
       userInfo: {},
-	  paycode:"",
+      paycode: ""
     };
   },
   watch: {
@@ -439,7 +438,6 @@ export default {
       if (n.name === NAME) {
         this.getUserInfo();
         this.getCartInfo();
-		
       }
     },
     shipping_type() {
@@ -461,7 +459,7 @@ export default {
         })
         .catch(() => {});
     },
-	
+
     addressType: function(index) {
       if (index && !this.system_store.id)
         return this.$dialog.error("暂无门店信息，您无法选择到店自提！");
@@ -501,26 +499,26 @@ export default {
           this.system_store = res.data.system_store || {};
           this.store_self_mention = res.data.store_self_mention;
           this.computedPrice();
-		  this.getPaycode()
+          this.getPaycode();
         })
         .catch(() => {
           this.$dialog.error("加载订单数据失败");
         });
     },
-	getPaycode(){
-		//TODO test
-		const cartInfo = this.orderGroupInfo.cartInfo;
-		if(cartInfo.length !=1){
-			this.$dialog.error("暂时不支持多商品购买");
-			return this.$router.go(-1);
-		}
-		var product_id = cartInfo[0].product_id;
-		getProductPaycode(product_id)
-		.then(res => {
-		  this.paycode = res.msg;
-		})
-		.catch(() => {});
-	},
+    getPaycode() {
+      //TODO test
+      const cartInfo = this.orderGroupInfo.cartInfo;
+      if (cartInfo.length != 1) {
+        this.$dialog.error("暂时不支持多商品购买");
+        return this.$router.go(-1);
+      }
+      var product_id = cartInfo[0].product_id;
+      getProductPaycode(product_id)
+        .then(res => {
+          this.paycode = res.msg;
+        })
+        .catch(() => {});
+    },
     addressTap: function() {
       this.showAddress = true;
       if (!this.addressLoaded) {
@@ -550,7 +548,7 @@ export default {
       this.addressInfo = addressInfo;
     },
     createOrder() {
-	  this.active = 'payh5code';
+      this.active = "payh5code";
       let shipping_type = this.shipping_type;
       if (!this.active) return this.$dialog.toast({ mes: "请选择支付方式" });
       if (!this.addressInfo.id && !this.shipping_type)
