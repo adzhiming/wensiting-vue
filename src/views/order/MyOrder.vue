@@ -54,14 +54,14 @@
         <div>已完成</div>
         <div class="num">{{ orderData.complete_count || 0 }}</div>
       </div>
-	  <div
-	    class="item"
-	    :class="{ on: type === 9 }"
-	    @click="$router.replace({ path: '/order/list/9' })"
-	  >
-	    <div>继售</div>
-	    <div class="num">{{ orderData.is_sale_count || 0 }}</div>
-	  </div>
+      <div
+        class="item"
+        :class="{ on: type === 9 }"
+        @click="$router.replace({ path: '/order/list/9' })"
+      >
+        <div>继售</div>
+        <div class="num">{{ orderData.is_sale_count || 0 }}</div>
+      </div>
     </div>
     <div class="list">
       <div class="item" v-for="order in orderList" :key="order.id">
@@ -151,18 +151,55 @@
           共{{ order.cartInfo.length || 0 }}件商品，总金额
           <span class="money font-color-red">￥{{ order.pay_price }}</span>
         </div>
+        <div
+          class="totalPrice"
+          v-if="order.is_pay_valid > 0 && order.paid == 0"
+        >
+          <span class=" font-color-red" v-if="order.is_pay_valid === 1">
+            支付申请-审核中
+          </span>
+          <span class=" font-color-red " v-if="order.is_pay_valid === 2">
+            支付申请-成功
+          </span>
+          <span class=" font-color-red" v-if="order.is_pay_valid === 3">
+            支付申请-失败
+          </span>
+        </div>
+
+        <div
+          class="totalPrice"
+          v-if="order._status._type === 1 && order.paid == 1"
+        >
+          <span class=" font-color-red" v-if="order.is_sale_valid === 1">
+            商品继售申请-审核中
+          </span>
+          <span class=" font-color-red " v-if="order.is_sale_valid === 2">
+            商品继售申请-成功
+          </span>
+          <span class=" font-color-red" v-if="order.is_sale_valid === 3">
+            商品继售申请-失败
+          </span>
+        </div>
+
         <div class="bottom acea-row row-right row-middle">
           <template v-if="order._status._type === 0">
             <div class="bnt cancelBnt" @click="cancelOrder(order)">
               取消订单
             </div>
-			
+
             <!-- <div class="bnt bg-color-red" @click="paymentTap(order)" >
               立即付款
             </div> -->
-			<div class="bnt bg-color-red" @click="showCode(order)">
-			  立即付款
-			</div>
+            <div class="bnt bg-color-red" @click="showCode(order)">
+              查看付款码
+            </div>
+            <div
+              class="bnt bg-color-red"
+              @click="isPayOrder(order)"
+              v-if="order.is_pay_valid === 0 || order.is_pay_valid === 3"
+            >
+              已支付申请
+            </div>
           </template>
           <template
             v-if="order._status._type === 1 || order._status._type === 9"
@@ -174,20 +211,20 @@
               查看详情
             </div>
           </template>
-		  <template
-		    v-if="order._status._type === 1  && order.status == 0 " 
-		  >
-				<div class="bnt bg-color-red" @click="isSaleOrder(order)">
-				  继售商品
-				</div>
-		  </template>
-		  <template
-		    v-if="order._status._type === 9 && order.status == 9 " 
-		  >
-				<div class="bnt bg-color-red" @click="isSaleOKOrder(order)">
-				  继售确认收款
-				</div>
-		  </template>
+          <template v-if="order._status._type === 1 && order.status == 0">
+            <div
+              class="bnt bg-color-red"
+              @click="isApplySale(order)"
+              v-if="order.is_sale_valid == 0 || order.is_sale_valid == 3"
+            >
+              申请继售商品
+            </div>
+          </template>
+          <template v-if="order._status._type === 9 && order.status == 9">
+            <div class="bnt bg-color-red" @click="isSaleOrder(order)">
+              继售确认收款
+            </div>
+          </template>
           <template v-if="order._status._type === 2">
             <div
               class="bnt default"
@@ -239,27 +276,28 @@
       @checked="toPay"
       :balance="userInfo.now_money"
     ></Payment>
-	<ShowPayCode
-	  v-on:setPosterImageStatus="setPosterImageStatus"
-	  :posterImageStatus="posterImageStatus"
-	  :posterData="posterData"
-	></ShowPayCode>
+    <ShowPayCode
+      v-on:setPosterImageStatus="setPosterImageStatus"
+      :posterImageStatus="posterImageStatus"
+      :posterData="posterData"
+    ></ShowPayCode>
   </div>
 </template>
 <script>
 import { getOrderData, getOrderList } from "@api/order";
 import {
   cancelOrderHandle,
-  isSaleOrderHandle,
   payOrderHandle,
-  takeOrderHandle
+  takeOrderHandle,
+  isPayOrderHandle,
+  isApplySaleHandle,
+  isSaleOrderHandle
 } from "@libs/order";
 import Loading from "@components/Loading";
 import Payment from "@components/Payment";
 import { mapGetters } from "vuex";
 import { isWeixin } from "@utils";
-import dialog from "@utils/dialog";
-import { getProductPaycodebyOrder  } from "@api/store";
+import { getProductPaycodebyOrder } from "@api/store";
 import ShowPayCode from "@components/ShowPayCode";
 
 const STATUS = [
@@ -292,20 +330,20 @@ export default {
       pay: false,
       payType: ["yue", "weixin"],
       from: isWeixin() ? "weixin" : "weixinh5",
-	  paycode:'',
-	  posterImageStatus: false,
-	  posterData: {
-	    image: "",
-	    title: "",
-	    price: "",
-	    code: ""
-	  },
+      paycode: "",
+      posterImageStatus: false,
+      posterData: {
+        image: "",
+        title: "",
+        price: "",
+        code: ""
+      }
     };
   },
   components: {
     Loading,
     Payment,
-	ShowPayCode,
+    ShowPayCode
   },
   computed: mapGetters(["userInfo"]),
   watch: {
@@ -334,7 +372,7 @@ export default {
         this.orderData = res.data;
       });
     },
-	
+
     takeOrder(order) {
       takeOrderHandle(order.order_id).finally(() => {
         this.reload();
@@ -379,41 +417,53 @@ export default {
           this.reload();
         });
     },
-	//TODO test
-	isSaleOKOrder(order){
-		isSaleOrderHandle(order.id)
-		  .then(() => {
-		    this.orderList.splice(this.orderList.indexOf(order), 1);
-		  })
-		  .catch(() => {
-		    this.reload();
-		  });
-	},
-	isSaleOrder(){
-		dialog.confirm({
-		  mes: "需求继售改订单商品，请联系客服",
-		  opts() {
-		  }
-		});
-	},
-	showCode: function(order) {
-		getProductPaycodebyOrder(order.id)
-		.then(res => {
-		  this.paycode = res.msg;
-		})
-		.catch(() => {});
-		this.posterData.image = order.cartInfo[0].productInfo.image;
-		this.posterData.title = order.cartInfo[0].productInfo.store_name;
-		this.posterData.price = order.cartInfo[0].truePrice;
-		this.posterData.code = this.paycode;
-		this.setPosterImageStatus();
-	},
-	setPosterImageStatus: function() {
-	  var sTop = document.body || document.documentElement;
-	  sTop.scrollTop = 0;
-	  this.posterImageStatus = !this.posterImageStatus;
-	  this.posters = false;
-	},
+    //TODO test
+    isSaleOrder(order) {
+      isSaleOrderHandle(order.id)
+        .then(() => {
+          this.orderList.splice(this.orderList.indexOf(order), 1);
+        })
+        .catch(() => {
+          this.reload();
+        });
+    },
+    isPayOrder(order) {
+      isPayOrderHandle(order.id)
+        .then(() => {
+          this.orderList.splice(this.orderList.indexOf(order), 1);
+        })
+        .catch(() => {
+          this.reload();
+        });
+    },
+    isApplySale(order) {
+      isApplySaleHandle(order.id)
+        .then(() => {
+          this.orderList.splice(this.orderList.indexOf(order), 1);
+        })
+        .catch(() => {
+          this.reload();
+        });
+    },
+
+    showCode: function(order) {
+      getProductPaycodebyOrder(order.id)
+        .then(res => {
+          this.paycode = res.msg;
+        })
+        .catch(() => {});
+      this.posterData.image = order.cartInfo[0].productInfo.image;
+      this.posterData.title = order.cartInfo[0].productInfo.store_name;
+      this.posterData.price = order.cartInfo[0].truePrice;
+      this.posterData.code = this.paycode;
+      this.setPosterImageStatus();
+    },
+    setPosterImageStatus: function() {
+      var sTop = document.body || document.documentElement;
+      sTop.scrollTop = 0;
+      this.posterImageStatus = !this.posterImageStatus;
+      this.posters = false;
+    },
     paymentTap: function(order) {
       var that = this;
       if (
