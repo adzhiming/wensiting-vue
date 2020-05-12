@@ -204,7 +204,8 @@ export default {
       loginMobile({
         phone: that.account,
         captcha: that.captcha,
-        spread: cookie.get("spread")
+        spread: cookie.get("spread"),
+        uuid: sessionStorage.getItem("uuid")
       })
         .then(res => {
           let data = res.data;
