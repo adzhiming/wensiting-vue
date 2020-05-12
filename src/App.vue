@@ -70,7 +70,7 @@ export default {
     }
   },
   mounted: function() {
-    this.setOpenShare();
+    //this.setOpenShare();
   },
   methods: {
     setOpenShare: function() {
