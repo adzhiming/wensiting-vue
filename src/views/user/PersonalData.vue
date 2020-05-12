@@ -30,11 +30,9 @@
                 </div>
               </VueCoreImageUpload>
               <div class="pictrue" v-else>
-                <img 
-				:src="item.avatar" />
+                <img :src="item.avatar" />
               </div>
               <img
-			  
                 src="@assets/images/alter.png"
                 class="alter"
                 v-if="item.uid === userInfo.uid"
@@ -111,37 +109,37 @@
           </div>
         </router-link>
       </div>
-	  
-	  <!-- TODO test -->
-	  <div class="item acea-row row-between-wrapper">
-	    <div>收款码</div>
-	    <VueCoreImageUpload
-	      class="btn btn-primary"
-	      :crop="false"
-	      compress="80"
-	      @imageuploaded="imageuploaded_pay_code"
-	      :headers="headers"
-	      :max-file-size="5242880"
-	      :credentials="false"
-	      inputAccept="image/*"
-	      inputOfFile="file"
-	      :url="url"
-	      ref="upImg"
-	    >
-	      <div class="pictrue-pay-code">
-	        <img :src="userInfo.h5_pay_code?userInfo.h5_pay_code:require('../../assets/images/pay-code-demo.png')"" />
-	      </div>
-		  <img
-		    src="@assets/images/alter.png"
-		    class="edit-icon"
-		    v-if="userInfo.h5_pay_code === userInfo.h5_pay_code"
-		  />	
-	    </VueCoreImageUpload> 
-	  </div>
-	  
-	  
-	  
-	  
+      <div class="item acea-row row-between-wrapper">
+        <div>收款码</div>
+        <VueCoreImageUpload
+          class="btn btn-primary"
+          :crop="false"
+          compress="80"
+          @imageuploaded="imageuploaded_pay_code"
+          :headers="headers"
+          :max-file-size="5242880"
+          :credentials="false"
+          inputAccept="image/*"
+          inputOfFile="file"
+          :url="url"
+          ref="upImg"
+        >
+          <div class="pictrue-pay-code">
+            <img
+              :src="
+                userInfo.h5_pay_code
+                  ? userInfo.h5_pay_code
+                  : require('../../assets/images/pay-code-demo.png')
+              "
+            />
+          </div>
+          <img
+            src="@assets/images/alter.png"
+            class="edit-icon"
+            v-if="userInfo.h5_pay_code === userInfo.h5_pay_code"
+          />
+        </VueCoreImageUpload>
+      </div>
     </div>
     <div class="modifyBnt bg-color-red" @click="submit">保存修改</div>
     <div
@@ -244,19 +242,23 @@ export default {
       if (this.switchUserInfo[this.userIndex] === undefined) return;
       this.$set(this.switchUserInfo[this.userIndex], "avatar", res.data.url);
     },
-	imageuploaded_pay_code(res) {
-	  if (res.status !== 200)
-	    return this.$dialog.error(res.msg || "上传图片失败");
-	  this.$set(this.switchUserInfo[this.userIndex], "h5_pay_code", res.data.url);
-	  this.$set(this.userInfo, "h5_pay_code", res.data.url);
-	},
+    imageuploaded_pay_code(res) {
+      if (res.status !== 200)
+        return this.$dialog.error(res.msg || "上传图片失败");
+      this.$set(
+        this.switchUserInfo[this.userIndex],
+        "h5_pay_code",
+        res.data.url
+      );
+      this.$set(this.userInfo, "h5_pay_code", res.data.url);
+    },
 
     submit: function() {
       let userInfo = this.switchUserInfo[this.userIndex];
       postUserEdit({
         nickname: trim(this.userInfo.nickname),
         avatar: userInfo.avatar,
-		h5_pay_code:userInfo.h5_pay_code
+        h5_pay_code: userInfo.h5_pay_code
       }).then(
         res => {
           this.$store.dispatch("USERINFO", true);
@@ -288,26 +290,26 @@ export default {
   }
 };
 </script>
-<style scoped>
-.pictrue-pay-code{
-	width: auto;  
-	height: auto;  
-	max-width: 2.88rem;
-	max-height: 2.88rem;
-	objec-fit: cover;
-	position: relative;
+<style>
+.pictrue-pay-code {
+  width: auto;
+  height: auto;
+  max-width: 2.88rem;
+  max-height: 2.88rem;
+  objec-fit: cover;
+  position: relative;
 }
-	
-.pictrue-pay-code img{
-	border: 0;
-	width: auto;
-	height: auto;
-	max-width: 100%;
-	max-height: 100%;
+
+.pictrue-pay-code img {
+  border: 0;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
 }
-.edit-icon{
-	position: absolute;
-	bottom: 0;
-	right: 0;
+.edit-icon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }
 </style>
