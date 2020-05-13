@@ -636,7 +636,7 @@ export default {
           that.DefaultSelect();
           that.getCartCount();
           that.getImageBase64();
-          that.setOpenShare();
+          //that.setOpenShare();
         })
         .catch(res => {
           that.$dialog.error(res.msg);

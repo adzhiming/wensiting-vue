@@ -69,9 +69,7 @@ export default {
       console.log(this.transitionName, "change");
     }
   },
-  mounted: function() {
-    //this.setOpenShare();
-  },
+  mounted: function() {},
   methods: {
     setOpenShare: function() {
       if (isWeixin()) {
